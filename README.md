@@ -32,8 +32,6 @@ OroOro Spotify App
 
   6. Run
 
-  python3 main.py
-
-  A browser window will open asking you to
-  authorize the app. After approving, the token is
-  cached in .cache for future runs.
+  source .venv/bin/activate
+  python manage.py migrate
+  python manage.py runserver
