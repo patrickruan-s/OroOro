@@ -33,5 +33,5 @@ OroOro Spotify App
   6. Run
 
   source .venv/bin/activate
-  python main.py migrate
-  python main.py runserver
+  python manaage.py migrate
+  python manage.py runserver
