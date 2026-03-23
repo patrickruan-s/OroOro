@@ -27,8 +27,7 @@ OroOro Spotify App
   Create a .env file in the project root:
   SPOTIPY_CLIENT_ID=your_client_id
   SPOTIPY_CLIENT_SECRET=your_client_secret
-  SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callba
-  ck
+  SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callback
 
   6. Run
 
