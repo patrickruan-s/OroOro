@@ -30,7 +30,5 @@ OroOro Spotify App
   SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callback
 
   6. Run
-
-  source .venv/bin/activate
   python manage.py migrate
-  python manage.py runserver
+  source .venv/bin/activate && python manage.py runserver 8888
