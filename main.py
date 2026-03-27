@@ -12,9 +12,8 @@ scope = "user-library-read user-top-read"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 
 results = sp.current_user_saved_tracks()
-for idx, item in enumerate(results['items']):
-    track = item['track']
-    print(idx, track['artists'][0]['name'], " – ", track['name'])
+
+pd.set_option('max_colwidth', None)
 
 def get_top_tracks(limit=50, time_range="medium_term") -> pd.DataFrame:
     """
@@ -35,11 +34,11 @@ def get_top_tracks(limit=50, time_range="medium_term") -> pd.DataFrame:
         })
     return pd.DataFrame(tracks)
 
-df = get_top_tracks(20, "long_term")
-pd.set_option('max_colwidth', None)
-print(df)
-user = sp.current_user()
-print(f"Logged in as: {user['display_name']}")
+if __name__ == "__main__":
+    df = get_top_tracks(20, "long_term")
+    print(df)
+    user = sp.current_user()
+    print(f"Logged in as: {user['display_name']}")
 
 
 def get_recently_played(limit=50) -> pd.DataFrame:
