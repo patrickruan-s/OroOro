@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    {% if summary and summary.user.spotifyprofile.display_name %}
+      {{ summary.user.spotifyprofile.display_name }}'s Wrapped
+    {% else %}
+      Your Wrapped
+    {% endif %}
+  </title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ── Top nav ── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid #282828;
+      position: sticky;
+      top: 0;
+      background: #121212;
+      z-index: 100;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1DB954;
+      text-decoration: none;
+    }
+    .nav-logo svg { flex-shrink: 0; }
+    .logout {
+      color: #b3b3b3;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid #535353;
+      border-radius: 20px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .logout:hover { border-color: #fff; color: #fff; }
+
+    /* ── Main wrapper ── */
+    .main { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+
+    /* ── Section divider ── */
+    .section { margin-top: 3.5rem; }
+    .section + .section { border-top: 1px solid #282828; padding-top: 3.5rem; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1DB954;
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Section 1 — Hero header ── */
+    .hero { text-align: center; padding: 3rem 1rem 1rem; }
+    .hero-year {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #1DB954;
+      margin-bottom: 0.75rem;
+    }
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #fff 40%, #1DB954);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      margin-top: 0.75rem;
+      color: #b3b3b3;
+      font-size: 1rem;
+    }
+
+    /* ── Section 2 — Stats row ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 800px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+    .stat-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .stat-card-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #b3b3b3;
+    }
+    .stat-card-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #1DB954;
+      line-height: 1;
+    }
+    .stat-card-desc {
+      font-size: 0.8rem;
+      color: #727272;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Charts ── */
+    .chart-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 1.75rem;
+    }
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    /* Radar + doughnut side by side */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 700px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
+    .chart-inner-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #b3b3b3;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Section 6 — Artist grid ── */
+    .artists-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) {
+      .artists-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .artists-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .artist-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .artist-card:hover { background: #282828; }
+    .artist-rank {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #535353;
+      align-self: flex-start;
+    }
+    .artist-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #333;
+    }
+    .artist-img-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #282828;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      color: #535353;
+      flex-shrink: 0;
+    }
+    .artist-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .genre-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1DB954;
+      background: rgba(29, 185, 84, 0.12);
+      border-radius: 20px;
+      padding: 0.2rem 0.65rem;
+      text-transform: capitalize;
+    }
+
+    /* ── Section 7 — Recently played ── */
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .recent-item {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .recent-item:hover { background: #282828; }
+    .recent-track-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .recent-artists {
+      font-size: 0.78rem;
+      color: #b3b3b3;
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .recent-time {
+      font-size: 0.75rem;
+      color: #535353;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* ── Tracks chart override ── */
+    #tracksChartWrap { overflow-x: auto; }
+    #tracksChart { min-width: 700px; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a class="nav-logo" href="#">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="#1DB954" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257C14.3 12.24 10.85 11.86 8.16 12.67a.778.778 0 01-.972-.52.78.78 0 01.52-.972c3.076-.937 6.9-.483 9.514 1.452a.78.78 0 01.587.072zm.105-2.835C15.34 9.15 10.5 8.986 7.442 9.88a.935.935 0 11-.543-1.79c3.498-1.062 9.318-.857 12.99 1.307a.935.935 0 01-.975 1.47z"/>
+      </svg>
+      Spotify Wrapped
+    </a>
+    <a class="logout" href="{% url 'logout' %}">Log out</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- ── Section 1: Hero ── -->
+    <div class="hero">
+      <p class="hero-year">Your Year in Music</p>
+      <h1 class="hero-title">
+        {% if summary and summary.user.spotifyprofile.display_name %}
+          {{ summary.user.spotifyprofile.display_name }}'s Wrapped
+        {% else %}
+          Your Wrapped
+        {% endif %}
+      </h1>
+      <p class="hero-sub">A look at your listening history over all time</p>
+    </div>
+
+    <!-- ── Section 2: Stats Row ── -->
+    {% if summary %}
+    <div class="section">
+      <p class="section-label">By the numbers</p>
+      <h2 class="section-title">Your Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-card-label">Minutes listened</span>
+          <span class="stat-card-value">{{ summary.total_minutes|floatformat:0 }}</span>
+          <span class="stat-card-desc">minutes of music</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-label">How underground?</span>
+          <span class="stat-card-value">{{ summary.obscurity_score|floatformat:0 }}<small style="font-size:1rem;color:#535353">/100</small></span>
+          <span class="stat-card-desc">obscurity score</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-label">Top genre</span>
+          <span class="stat-card-value" style="font-size:1.3rem;text-transform:capitalize;">{{ summary.top_genre|default:"—" }}</span>
+          <span class="stat-card-desc">your most-heard genre</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-label">Average energy</span>
+          <span class="stat-card-value">{{ summary.avg_energy|floatformat:2 }}</span>
+          <span class="stat-card-desc">out of 1.00</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Section 3: Top Tracks Bar Chart ── -->
+    {% if tracks %}
+    <div class="section">
+      <p class="section-label">Your top tracks</p>
+      <h2 class="section-title">Top 20 Tracks</h2>
+      <div class="chart-card">
+        <div id="tracksChartWrap" class="chart-wrapper">
+          <canvas id="tracksChart" height="420"></canvas>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Sections 4 & 5: Radar + Doughnut ── -->
+    {% if summary or genres %}
+    <div class="section">
+      <div class="charts-row">
+        {% if summary %}
+        <div class="chart-card">
+          <p class="chart-inner-title">Your Sound Profile</p>
+          <div class="chart-wrapper" style="max-height:340px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+        {% endif %}
+        {% if genres %}
+        <div class="chart-card">
+          <p class="chart-inner-title">Your Top Genres</p>
+          <div class="chart-wrapper" style="max-height:340px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="doughnutChart"></canvas>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Section 6: Top Artists ── -->
+    {% if top_artists %}
+    <div class="section">
+      <p class="section-label">Who you love</p>
+      <h2 class="section-title">Top Artists</h2>
+      <div class="artists-grid">
+        {% for artist in top_artists %}
+        <div class="artist-card">
+          <span class="artist-rank">#{{ forloop.counter }}</span>
+          {% if artist.image_url %}
+            <img class="artist-img" src="{{ artist.image_url }}" alt="{{ artist.name }}" loading="lazy" />
+          {% else %}
+            <div class="artist-img-placeholder">&#9835;</div>
+          {% endif %}
+          <span class="artist-name">{{ artist.name }}</span>
+          {% if artist.genres %}
+            <span class="genre-tag">{{ artist.genres.0 }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Section 7: Recently Played ── -->
+    {% if recently_played %}
+    <div class="section">
+      <p class="section-label">Fresh listens</p>
+      <h2 class="section-title">Recently Played</h2>
+      <div class="recent-list">
+        {% for entry in recently_played|slice:":10" %}
+        <div class="recent-item">
+          <div style="overflow:hidden;">
+            <div class="recent-track-name">{{ entry.track.name }}</div>
+            <div class="recent-artists">
+              {% for artist in entry.track.artists.all %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </div>
+          </div>
+          <span class="recent-time">{{ entry.played_at|date:"M j, g:i A" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+
+  <!-- Data islands -->
+  {{ tracks|json_script:"tracks-data" }}
+  {{ genres|json_script:"genres-data" }}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // ── Shared defaults ──────────────────────────────────────
+    Chart.defaults.color = '#b3b3b3';
+    Chart.defaults.font.family = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+
+    // ── Section 3: Top Tracks Horizontal Bar Chart ──────────
+    (function () {
+      const el = document.getElementById('tracks-data');
+      if (!el) return;
+      const rawTracks = JSON.parse(el.textContent);
+      if (!rawTracks || !rawTracks.length) return;
+
+      const canvas = document.getElementById('tracksChart');
+      // Dynamically size height so all bars are readable
+      const barHeight = 28;
+      canvas.height = rawTracks.length * barHeight + 60;
+
+      const labels = rawTracks.map(t => `#${t.rank}  ${t.name}`);
+      const durations = rawTracks.map(t => (t.duration_ms / 1000).toFixed(1));
+
+      new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Duration (seconds)',
+            data: durations,
+            backgroundColor: 'rgba(29, 185, 84, 0.75)',
+            borderColor: '#1DB954',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#b3b3b3' } },
+            tooltip: {
+              callbacks: {
+                afterLabel: function (context) {
+                  const t = rawTracks[context.dataIndex];
+                  return [
+                    `Artist: ${t.artist}`,
+                    `Album: ${t.album}`,
+                    `Explicit: ${t.explicit ? 'Yes' : 'No'}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#b3b3b3' },
+              grid: { color: '#282828' },
+              title: { display: true, text: 'Duration (seconds)', color: '#727272' }
+            },
+            y: {
+              ticks: { color: '#ccc', font: { size: 12 } },
+              grid: { color: '#282828' }
+            }
+          }
+        }
+      });
+    })();
+
+    // ── Section 4: Radar — Audio Mood ───────────────────────
+    (function () {
+      const canvas = document.getElementById('radarChart');
+      if (!canvas) return;
+
+      // Values injected via Django template
+      const energy      = parseFloat("{{ summary.avg_energy|default:'0' }}");
+      const valence     = parseFloat("{{ summary.avg_valence|default:'0' }}");
+      const danceability = parseFloat("{{ summary.avg_danceability|default:'0' }}");
+      // Acousticness not in summary; default to a neutral midpoint so the axis is still shown
+      const acousticness = 0.5;
+
+      new Chart(canvas.getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Energy', 'Valence', 'Danceability', 'Acousticness'],
+          datasets: [{
+            label: 'Your profile',
+            data: [energy, valence, danceability, acousticness],
+            backgroundColor: 'rgba(29, 185, 84, 0.2)',
+            borderColor: '#1DB954',
+            pointBackgroundColor: '#1DB954',
+            pointBorderColor: '#fff',
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { labels: { color: '#b3b3b3' } }
+          },
+          scales: {
+            r: {
+              min: 0,
+              max: 1,
+              ticks: {
+                stepSize: 0.25,
+                color: '#535353',
+                backdropColor: 'transparent',
+              },
+              grid: { color: '#333' },
+              angleLines: { color: '#333' },
+              pointLabels: { color: '#b3b3b3', font: { size: 13 } }
+            }
+          }
+        }
+      });
+    })();
+
+    // ── Section 5: Doughnut — Genre breakdown ────────────────
+    (function () {
+      const el = document.getElementById('genres-data');
+      if (!el) return;
+      const rawGenres = JSON.parse(el.textContent);
+      if (!rawGenres || !rawGenres.length) return;
+
+      const canvas = document.getElementById('doughnutChart');
+      if (!canvas) return;
+
+      const palette = [
+        '#1DB954', '#1ed760', '#17a349', '#128f3d',
+        '#0f7a34', '#0c652b', '#48d17a', '#6bdda0',
+        '#2ec76e', '#23b060'
+      ];
+
+      const labels = rawGenres.map(g => g.genre);
+      const counts = rawGenres.map(g => g.count);
+      const colors = rawGenres.map((_, i) => palette[i % palette.length]);
+
+      new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: counts,
+            backgroundColor: colors,
+            borderColor: '#121212',
+            borderWidth: 3,
+            hoverOffset: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#b3b3b3',
+                padding: 14,
+                font: { size: 12 },
+                usePointStyle: true,
+                pointStyleWidth: 10,
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = ((context.parsed / total) * 100).toFixed(1);
+                  return ` ${context.label}: ${context.parsed} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

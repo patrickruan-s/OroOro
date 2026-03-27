@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login - Spotify Top Tracks</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #121212;
+      color: #fff;
+    }
+    h1 { margin-bottom: 2rem; }
+    a.btn {
+      background: #1DB954;
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+    a.btn:hover { background: #17a349; }
+  </style>
+</head>
+<body>
+  <h1>Spotify Top Tracks</h1>
+  <a class="btn" href="{% url 'spotify_login' %}">Login with Spotify</a>
+</body>
+</html>
