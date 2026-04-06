@@ -1,35 +1,401 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login - Spotify Top Tracks</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Wrapped — Your Music, Analysed</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
       background: #121212;
       color: #fff;
+      font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
-    h1 { margin-bottom: 2rem; }
-    a.btn {
-      background: #1DB954;
+
+    a { text-decoration: none; }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #121212;
+      border-bottom: 1px solid #282828;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
       color: #fff;
-      padding: 14px 32px;
-      border-radius: 30px;
-      text-decoration: none;
-      font-size: 1rem;
-      font-weight: bold;
-      letter-spacing: 0.05em;
     }
-    a.btn:hover { background: #17a349; }
+
+    .nav-cta {
+      background: #1DB954;
+      color: #000;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 0.6rem 1.5rem;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: #17a349; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 7rem 2rem 6rem;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #1DB954;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #fff 40%, #1DB954);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-tagline {
+      font-size: 1.15rem;
+      color: #b3b3b3;
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: #1DB954;
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 1rem 2.5rem;
+      border-radius: 999px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .hero-cta:hover { background: #17a349; transform: scale(1.03); }
+
+    .hero-note {
+      font-size: 0.78rem;
+      color: #535353;
+      margin-top: 1.25rem;
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 6rem 2rem;
+      border-top: 1px solid #282828;
+    }
+
+    .features-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1DB954;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3.5rem;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid #282828;
+    }
+
+    .feature-row.reverse { flex-direction: row-reverse; }
+
+    .feature-icon-wrap {
+      font-size: 3.5rem;
+      flex-shrink: 0;
+      width: 100px;
+      height: 100px;
+      background: #1e1e1e;
+      border-radius: 20px;
+      border: 1px solid #282828;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feature-title {
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-desc {
+      font-size: 0.95rem;
+      color: #b3b3b3;
+      line-height: 1.65;
+    }
+
+    /* ── How It Works ── */
+    .how-it-works {
+      padding: 6rem 2rem;
+      border-top: 1px solid #282828;
+      background: #1a1a1a;
+    }
+
+    .how-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .steps-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .step {
+      background: #1e1e1e;
+      border: 1px solid #282828;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      flex: 1;
+      min-width: 200px;
+      max-width: 240px;
+      text-align: center;
+    }
+
+    .step-number {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #1DB954;
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-desc {
+      font-size: 0.85rem;
+      color: #b3b3b3;
+      line-height: 1.6;
+    }
+
+    .step-arrow {
+      font-size: 1.5rem;
+      color: #535353;
+      padding-top: 2.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid #282828;
+      padding: 2.5rem 2rem;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-link {
+      color: #b3b3b3;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: #fff; }
+
+    .footer-copy {
+      font-size: 0.78rem;
+      color: #535353;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .feature-row,
+      .feature-row.reverse {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .feature-icon-wrap { width: 72px; height: 72px; font-size: 2.5rem; }
+
+      .step-arrow { display: none; }
+
+      .steps-row { flex-direction: column; align-items: center; }
+
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <h1>Spotify Top Tracks</h1>
-  <a class="btn" href="{% url 'spotify_login' %}">Login with Spotify</a>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a class="nav-logo" href="#">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="#1DB954" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257C14.3 12.24 10.85 11.86 8.16 12.67a.778.778 0 01-.972-.52.78.78 0 01.52-.972c3.076-.937 6.9-.483 9.514 1.452a.78.78 0 01.587.072zm.105-2.835C15.34 9.15 10.5 8.986 7.442 9.88a.935.935 0 11-.543-1.79c3.498-1.062 9.318-.857 12.99 1.307a.935.935 0 01-.975 1.47z"/>
+      </svg>
+      Spotify Wrapped
+    </a>
+    <a class="nav-cta" href="{% url 'spotify_login' %}">Login with Spotify</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <p class="hero-eyebrow">Free &middot; No account required beyond Spotify</p>
+    <h1 class="hero-title">Your Music,<br>Unwrapped.</h1>
+    <p class="hero-tagline">
+      Discover your top tracks, artists, listening patterns,
+      and music personality &mdash; all in one place.
+    </p>
+    <a class="hero-cta" href="{% url 'spotify_login' %}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257C14.3 12.24 10.85 11.86 8.16 12.67a.778.778 0 01-.972-.52.78.78 0 01.52-.972c3.076-.937 6.9-.483 9.514 1.452a.78.78 0 01.587.072zm.105-2.835C15.34 9.15 10.5 8.986 7.442 9.88a.935.935 0 11-.543-1.79c3.498-1.062 9.318-.857 12.99 1.307a.935.935 0 01-.975 1.47z"/>
+      </svg>
+      Connect with Spotify
+    </a>
+    <p class="hero-note">We only read your listening data. Nothing is stored without your permission.</p>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="features-inner">
+      <p class="section-label">What you get</p>
+      <h2 class="section-title">Everything about your listening</h2>
+
+      <div class="feature-row">
+        <div class="feature-icon-wrap">🎵</div>
+        <div>
+          <h3 class="feature-title">Top Tracks</h3>
+          <p class="feature-desc">Your 20 most-played songs across short, medium, and long time windows. See exactly what you&rsquo;ve been obsessing over.</p>
+        </div>
+      </div>
+
+      <div class="feature-row reverse">
+        <div class="feature-icon-wrap">🎤</div>
+        <div>
+          <h3 class="feature-title">Top Artists</h3>
+          <p class="feature-desc">Discover which artists dominate your listening history and how your taste shifts over time.</p>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-icon-wrap">🗓️</div>
+        <div>
+          <h3 class="feature-title">Listening Heatmap</h3>
+          <p class="feature-desc">Visualise your daily listening patterns across the last 52 weeks &mdash; find your most active music days.</p>
+        </div>
+      </div>
+
+      <div class="feature-row reverse">
+        <div class="feature-icon-wrap">🧠</div>
+        <div>
+          <h3 class="feature-title">Mood Profile</h3>
+          <p class="feature-desc">From Party Animal to Melancholy Dreamer &mdash; find out your listener personality type based on energy and valence.</p>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-icon-wrap">🔬</div>
+        <div>
+          <h3 class="feature-title">Artist Deep Dive</h3>
+          <p class="feature-desc">Explore audio fingerprints per artist: energy, danceability, acousticness, and obscurity score.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="how-inner">
+      <p class="section-label">Simple by design</p>
+      <h2 class="section-title">How it works</h2>
+      <div class="steps-row">
+        <div class="step">
+          <span class="step-number">01</span>
+          <h3 class="step-title">Connect Spotify</h3>
+          <p class="step-desc">Click &ldquo;Login with Spotify&rdquo; and grant read-only access to your listening history.</p>
+        </div>
+        <div class="step-arrow">&rarr;</div>
+        <div class="step">
+          <span class="step-number">02</span>
+          <h3 class="step-title">We sync your data</h3>
+          <p class="step-desc">We fetch your top tracks, artists, and recently played history directly from the Spotify API.</p>
+        </div>
+        <div class="step-arrow">&rarr;</div>
+        <div class="step">
+          <span class="step-number">03</span>
+          <h3 class="step-title">Explore your stats</h3>
+          <p class="step-desc">Dive into your personalised dashboard &mdash; tracks, heatmaps, personality type, and more.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <a class="nav-logo" href="#">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#1DB954" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257C14.3 12.24 10.85 11.86 8.16 12.67a.778.778 0 01-.972-.52.78.78 0 01.52-.972c3.076-.937 6.9-.483 9.514 1.452a.78.78 0 01.587.072zm.105-2.835C15.34 9.15 10.5 8.986 7.442 9.88a.935.935 0 11-.543-1.79c3.498-1.062 9.318-.857 12.99 1.307a.935.935 0 01-.975 1.47z"/>
+        </svg>
+        Spotify Wrapped
+      </a>
+      <a class="footer-link" href="https://github.com/">GitHub</a>
+      <p class="footer-copy">&copy; 2026 Spotify Wrapped. Not affiliated with Spotify AB.</p>
+    </div>
+  </footer>
+
 </body>
 </html>

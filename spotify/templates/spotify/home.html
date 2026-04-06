@@ -4,11 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>
-    {% if summary and summary.user.spotifyprofile.display_name %}
-      {{ summary.user.spotifyprofile.display_name }}'s Wrapped
-    {% else %}
-      Your Wrapped
-    {% endif %}
+    {% if display_name %}{{ display_name }}'s Wrapped{% else %}Your Wrapped{% endif %}
   </title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -102,17 +98,36 @@
       font-size: 1rem;
     }
 
+    /* ── Time Range Toggle ── */
+    .time-range-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1.75rem;
+      flex-wrap: wrap;
+    }
+    .time-pill {
+      text-decoration: none;
+      font-size: 0.825rem;
+      font-weight: 700;
+      padding: 0.5rem 1.4rem;
+      border-radius: 999px;
+      border: 2px solid #1DB954;
+      color: #1DB954;
+      transition: background 0.18s, color 0.18s;
+      letter-spacing: 0.03em;
+    }
+    .time-pill:hover { background: rgba(29,185,84,0.15); }
+    .time-pill.active {
+      background: #1DB954;
+      color: #000;
+    }
+
     /* ── Section 2 — Stats row ── */
     .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 1rem;
-    }
-    @media (max-width: 800px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
     }
     .stat-card {
       background: #1e1e1e;
@@ -121,6 +136,8 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      flex: 1 1 180px;
+      min-width: 150px;
     }
     .stat-card-label {
       font-size: 0.7rem;
@@ -139,6 +156,28 @@
       font-size: 0.8rem;
       color: #727272;
       margin-top: 0.25rem;
+    }
+
+    /* ── Personality Card ── */
+    .personality-card {
+      border-radius: 14px;
+      padding: 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .personality-label {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .personality-desc {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.75);
+      max-width: 480px;
     }
 
     /* ── Charts ── */
@@ -169,6 +208,94 @@
       margin-bottom: 1rem;
     }
 
+    /* ── Track search filter ── */
+    .track-filter-wrap {
+      margin-bottom: 1.25rem;
+    }
+    .track-filter-input {
+      width: 100%;
+      max-width: 380px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      padding: 0.6rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .track-filter-input:focus { border-color: #1DB954; }
+    .track-filter-input::placeholder { color: #535353; }
+
+    /* ── Searchable track list ── */
+    .track-list {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .track-row {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.18s;
+    }
+    .track-row:hover { background: #282828; transform: translateX(4px); }
+    .track-row-rank {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #535353;
+      width: 24px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .track-row-art {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #333;
+      flex-shrink: 0;
+    }
+    .track-row-art-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      background: #282828;
+      flex-shrink: 0;
+    }
+    .track-row-info { flex: 1; overflow: hidden; }
+    .track-row-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-row-artist {
+      font-size: 0.78rem;
+      color: #b3b3b3;
+      margin-top: 0.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-row-explicit {
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: #535353;
+      color: #fff;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
     /* ── Section 6 — Artist grid ── */
     .artists-grid {
       display: grid;
@@ -181,6 +308,11 @@
     @media (max-width: 600px) {
       .artists-grid { grid-template-columns: repeat(2, 1fr); }
     }
+    .artist-card-link {
+      text-decoration: none;
+      display: block;
+      border-radius: 12px;
+    }
     .artist-card {
       background: #1e1e1e;
       border-radius: 12px;
@@ -190,9 +322,13 @@
       align-items: center;
       gap: 0.75rem;
       text-align: center;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
     }
-    .artist-card:hover { background: #282828; }
+    .artist-card-link:hover .artist-card {
+      background: #282828;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
     .artist-rank {
       font-size: 0.65rem;
       font-weight: 700;
@@ -277,6 +413,175 @@
     /* ── Tracks chart override ── */
     #tracksChartWrap { overflow-x: auto; }
     #tracksChart { min-width: 700px; }
+
+    /* ── Heatmap Section ── */
+    .heatmap-outer {
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    #heatmap-grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-rows: repeat(7, 10px);
+      gap: 3px;
+      width: max-content;
+    }
+    .hm-cell {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #1e1e1e;
+    }
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: #535353;
+    }
+    .heatmap-legend-cell {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+    .heatmap-dow-labels {
+      display: grid;
+      grid-template-rows: repeat(7, 10px);
+      gap: 3px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .heatmap-dow-label {
+      font-size: 0.65rem;
+      color: #535353;
+      line-height: 10px;
+      text-align: right;
+    }
+    .heatmap-inner {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    /* ── Track Detail Modal ── */
+    #track-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #track-modal-backdrop.open {
+      display: flex;
+    }
+    #track-modal {
+      background: #1e1e1e;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 540px;
+      width: 90%;
+      position: relative;
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.93) translateY(12px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);   opacity: 1; }
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #b3b3b3;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-header {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+    .modal-art {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #333;
+      flex-shrink: 0;
+    }
+    .modal-art-placeholder {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      background: #282828;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #535353;
+      flex-shrink: 0;
+    }
+    .modal-track-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 0.3rem;
+    }
+    .modal-artist-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1DB954;
+      margin-bottom: 0.2rem;
+    }
+    .modal-album-name {
+      font-size: 0.82rem;
+      color: #b3b3b3;
+      margin-bottom: 0.5rem;
+    }
+    .modal-explicit-badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: #535353;
+      color: #fff;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+    .modal-features { display: flex; flex-direction: column; gap: 0.7rem; }
+    .modal-feature-row { display: flex; flex-direction: column; gap: 0.25rem; }
+    .modal-feature-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #727272;
+    }
+    .modal-feature-bar-bg {
+      background: #282828;
+      border-radius: 999px;
+      height: 6px;
+      width: 100%;
+    }
+    .modal-feature-bar-fill {
+      height: 6px;
+      border-radius: 999px;
+      background: #1DB954;
+      transition: width 0.4s ease;
+    }
+    .modal-feature-na {
+      font-size: 0.8rem;
+      color: #535353;
+    }
   </style>
 </head>
 <body>
@@ -292,19 +597,44 @@
     <a class="logout" href="{% url 'logout' %}">Log out</a>
   </nav>
 
+  {% if syncing %}
+  <div style="background:#1a2e1a;border-bottom:1px solid rgba(29,185,84,0.3);padding:0.6rem 2rem;display:flex;align-items:center;gap:0.6rem;font-size:0.8rem;color:#1DB954;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB954" style="animation:spin 1.2s linear infinite;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8V2z"/></svg>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    Syncing your Spotify data in the background &mdash; stats will update on your next visit.
+  </div>
+  {% endif %}
+
   <main class="main">
 
     <!-- ── Section 1: Hero ── -->
     <div class="hero">
       <p class="hero-year">Your Year in Music</p>
       <h1 class="hero-title">
-        {% if summary and summary.user.spotifyprofile.display_name %}
-          {{ summary.user.spotifyprofile.display_name }}'s Wrapped
-        {% else %}
-          Your Wrapped
-        {% endif %}
+        {% if display_name %}{{ display_name }}'s Wrapped{% else %}Your Wrapped{% endif %}
       </h1>
-      <p class="hero-sub">A look at your listening history over all time</p>
+      <p class="hero-sub">
+        {% if time_range == "short_term" %}Last 4 weeks
+        {% elif time_range == "medium_term" %}Last 6 months
+        {% else %}All time
+        {% endif %}
+      </p>
+
+      <!-- Time Range Toggle -->
+      <div class="time-range-toggle">
+        <a href="/?range=short_term"
+           class="time-pill {% if time_range == 'short_term' %}active{% endif %}">
+          Last 4 Weeks
+        </a>
+        <a href="/?range=medium_term"
+           class="time-pill {% if time_range == 'medium_term' %}active{% endif %}">
+          Last 6 Months
+        </a>
+        <a href="/?range=long_term"
+           class="time-pill {% if time_range == 'long_term' %}active{% endif %}">
+          All Time
+        </a>
+      </div>
     </div>
 
     <!-- ── Section 2: Stats Row ── -->
@@ -315,12 +645,15 @@
       <div class="stats-grid">
         <div class="stat-card">
           <span class="stat-card-label">Minutes listened</span>
-          <span class="stat-card-value">{{ summary.total_minutes|floatformat:0 }}</span>
+          <span class="stat-card-value"
+                data-target="{{ summary.total_minutes|floatformat:0 }}">0</span>
           <span class="stat-card-desc">minutes of music</span>
         </div>
         <div class="stat-card">
           <span class="stat-card-label">How underground?</span>
-          <span class="stat-card-value">{{ summary.obscurity_score|floatformat:0 }}<small style="font-size:1rem;color:#535353">/100</small></span>
+          <span class="stat-card-value"
+                data-target="{{ summary.obscurity_score|floatformat:0 }}"
+                data-suffix="/100">0<small style="font-size:1rem;color:#535353">/100</small></span>
           <span class="stat-card-desc">obscurity score</span>
         </div>
         <div class="stat-card">
@@ -330,22 +663,67 @@
         </div>
         <div class="stat-card">
           <span class="stat-card-label">Average energy</span>
-          <span class="stat-card-value">{{ summary.avg_energy|floatformat:2 }}</span>
+          <span class="stat-card-value"
+                data-target="{{ summary.avg_energy|floatformat:2 }}"
+                data-decimals="2">0</span>
           <span class="stat-card-desc">out of 1.00</span>
         </div>
       </div>
     </div>
     {% endif %}
 
-    <!-- ── Section 3: Top Tracks Bar Chart ── -->
+    <!-- ── Personality Card ── -->
+    {% if personality %}
+    <div class="section">
+      <div class="personality-card"
+           style="background: linear-gradient(135deg, {{ personality.color }}18 0%, #1e1e1e 70%);
+                  border: 1px solid {{ personality.color }}44;">
+        <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:{{ personality.color }};">Your Music Personality</span>
+        <span class="personality-label" style="color: {{ personality.color }};">{{ personality.label }}</span>
+        <span class="personality-desc">{{ personality.description }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Section 3: Top Tracks Bar Chart + Search + List ── -->
     {% if tracks %}
     <div class="section">
       <p class="section-label">Your top tracks</p>
       <h2 class="section-title">Top 20 Tracks</h2>
+
+      <!-- Search filter -->
+      <div class="track-filter-wrap">
+        <input id="track-filter" class="track-filter-input"
+               type="text" placeholder="Filter tracks..." autocomplete="off" />
+      </div>
+
       <div class="chart-card">
         <div id="tracksChartWrap" class="chart-wrapper">
           <canvas id="tracksChart" height="420"></canvas>
         </div>
+      </div>
+
+      <!-- Searchable track list (hidden/filtered by JS) -->
+      <div class="track-list" id="track-list">
+        {% for track in tracks %}
+        <div class="track-row"
+             data-track-index="{{ forloop.counter0 }}"
+             data-search="{{ track.name|lower }} {{ track.artist|lower }} {{ track.album|lower }}">
+          <span class="track-row-rank">#{{ track.rank }}</span>
+          {% if track.album_image_url %}
+            <img class="track-row-art" src="{{ track.album_image_url }}" alt="" loading="lazy" />
+          {% else %}
+            <div class="track-row-art-placeholder"></div>
+          {% endif %}
+          <div class="track-row-info">
+            <div class="track-row-name">{{ track.name }}</div>
+            <div class="track-row-artist">{{ track.artist }}</div>
+          </div>
+          {% if track.explicit %}
+            <span class="track-row-explicit">E</span>
+          {% endif %}
+        </div>
+        {% endfor %}
       </div>
     </div>
     {% endif %}
@@ -381,18 +759,20 @@
       <h2 class="section-title">Top Artists</h2>
       <div class="artists-grid">
         {% for artist in top_artists %}
-        <div class="artist-card">
-          <span class="artist-rank">#{{ forloop.counter }}</span>
-          {% if artist.image_url %}
-            <img class="artist-img" src="{{ artist.image_url }}" alt="{{ artist.name }}" loading="lazy" />
-          {% else %}
-            <div class="artist-img-placeholder">&#9835;</div>
-          {% endif %}
-          <span class="artist-name">{{ artist.name }}</span>
-          {% if artist.genres %}
-            <span class="genre-tag">{{ artist.genres.0 }}</span>
-          {% endif %}
-        </div>
+        <a class="artist-card-link" href="/artist/{{ artist.spotify_id }}/">
+          <div class="artist-card">
+            <span class="artist-rank">#{{ forloop.counter }}</span>
+            {% if artist.image_url %}
+              <img class="artist-img" src="{{ artist.image_url }}" alt="{{ artist.name }}" loading="lazy" />
+            {% else %}
+              <div class="artist-img-placeholder">&#9835;</div>
+            {% endif %}
+            <span class="artist-name">{{ artist.name }}</span>
+            {% if artist.genres %}
+              <span class="genre-tag">{{ artist.genres.0 }}</span>
+            {% endif %}
+          </div>
+        </a>
         {% endfor %}
       </div>
     </div>
@@ -419,7 +799,74 @@
     </div>
     {% endif %}
 
+    <!-- ── Section 8: Listening Heatmap ── -->
+    <div class="section" id="heatmap-section">
+      <p class="section-label">Listening Activity</p>
+      <h2 class="section-title">Last 52 Weeks</h2>
+      <div class="chart-card">
+        <div class="heatmap-inner">
+          <div class="heatmap-dow-labels" id="heatmap-dow">
+            <span class="heatmap-dow-label">Mon</span>
+            <span class="heatmap-dow-label">Tue</span>
+            <span class="heatmap-dow-label">Wed</span>
+            <span class="heatmap-dow-label">Thu</span>
+            <span class="heatmap-dow-label">Fri</span>
+            <span class="heatmap-dow-label">Sat</span>
+            <span class="heatmap-dow-label">Sun</span>
+          </div>
+          <div class="heatmap-outer">
+            <div id="heatmap-grid"></div>
+          </div>
+        </div>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <div class="heatmap-legend-cell" style="background:#1e1e1e;border:1px solid #333;"></div>
+          <div class="heatmap-legend-cell" style="background:rgba(29,185,84,0.25);"></div>
+          <div class="heatmap-legend-cell" style="background:rgba(29,185,84,0.5);"></div>
+          <div class="heatmap-legend-cell" style="background:rgba(29,185,84,0.75);"></div>
+          <div class="heatmap-legend-cell" style="background:#1DB954;"></div>
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- Track Detail Modal -->
+  <div id="track-modal-backdrop" role="dialog" aria-modal="true">
+    <div id="track-modal">
+      <button class="modal-close" id="modal-close-btn" aria-label="Close">&times;</button>
+      <div class="modal-header">
+        <img id="modal-art" class="modal-art" src="" alt="" />
+        <div style="flex:1;overflow:hidden;">
+          <div class="modal-track-name" id="modal-track-name"></div>
+          <div class="modal-artist-name" id="modal-artist-name"></div>
+          <div class="modal-album-name" id="modal-album-name"></div>
+          <span id="modal-explicit" class="modal-explicit-badge" style="display:none;">EXPLICIT</span>
+        </div>
+      </div>
+      <div class="modal-features">
+        <div class="modal-feature-row" id="modal-energy-row">
+          <span class="modal-feature-label">Energy</span>
+          <div class="modal-feature-bar-bg">
+            <div class="modal-feature-bar-fill" id="modal-energy-bar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="modal-feature-row" id="modal-valence-row">
+          <span class="modal-feature-label">Valence (Happiness)</span>
+          <div class="modal-feature-bar-bg">
+            <div class="modal-feature-bar-fill" id="modal-valence-bar" style="width:0%;background:#4A90D9;"></div>
+          </div>
+        </div>
+        <div class="modal-feature-row" id="modal-dance-row">
+          <span class="modal-feature-label">Danceability</span>
+          <div class="modal-feature-bar-bg">
+            <div class="modal-feature-bar-fill" id="modal-dance-bar" style="width:0%;background:#9B59B6;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Data islands -->
   {{ tracks|json_script:"tracks-data" }}
@@ -431,6 +878,180 @@
     Chart.defaults.color = '#b3b3b3';
     Chart.defaults.font.family = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
+    // ── Animated Stat Counters ───────────────────────────────
+    function animateCounter(el, target, duration) {
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const start = performance.now();
+      function step(now) {
+        const elapsed = Math.min(now - start, duration);
+        const progress = elapsed / duration;
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = target * eased;
+        el.textContent = decimals > 0
+          ? current.toFixed(decimals)
+          : Math.round(current).toLocaleString();
+        if (elapsed < duration) requestAnimationFrame(step);
+        else el.textContent = decimals > 0
+          ? target.toFixed(decimals)
+          : Math.round(target).toLocaleString();
+      }
+      requestAnimationFrame(step);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Animate numeric stat cards
+      document.querySelectorAll('.stat-card-value[data-target]').forEach(function (el) {
+        const target = parseFloat(el.dataset.target);
+        if (!isNaN(target)) {
+          animateCounter(el, target, 1200);
+        }
+      });
+
+      // ── Track search / filter ──────────────────────────────
+      const filterInput = document.getElementById('track-filter');
+      const trackRows = document.querySelectorAll('#track-list .track-row');
+      if (filterInput) {
+        filterInput.addEventListener('input', function () {
+          const q = this.value.toLowerCase().trim();
+          trackRows.forEach(function (row) {
+            const searchable = row.dataset.search || '';
+            row.style.display = (!q || searchable.includes(q)) ? '' : 'none';
+          });
+        });
+      }
+
+      // ── Track Detail Modal ─────────────────────────────────
+      const rawTracks = JSON.parse(document.getElementById('tracks-data').textContent || '[]');
+      const backdrop = document.getElementById('track-modal-backdrop');
+      const closeBtn = document.getElementById('modal-close-btn');
+
+      function openModal(idx) {
+        const t = rawTracks[idx];
+        if (!t) return;
+
+        const artEl = document.getElementById('modal-art');
+        if (t.album_image_url) {
+          artEl.src = t.album_image_url;
+          artEl.style.display = '';
+        } else {
+          artEl.style.display = 'none';
+        }
+        document.getElementById('modal-track-name').textContent = t.name;
+        document.getElementById('modal-artist-name').textContent = t.artist;
+        document.getElementById('modal-album-name').textContent = t.album;
+
+        const explicitEl = document.getElementById('modal-explicit');
+        explicitEl.style.display = t.explicit ? '' : 'none';
+
+        // Audio feature bars — tracks context doesn't include energy/valence
+        // but the tracks-data island is what we have. Show N/A for all three
+        // since audio features are not included in the home context.
+        // If they are ever added to the context, they'll populate automatically.
+        function setBar(barId, rowId, value) {
+          const bar = document.getElementById(barId);
+          const row = document.getElementById(rowId);
+          if (value !== null && value !== undefined) {
+            bar.style.width = (value * 100).toFixed(1) + '%';
+            // Replace any existing N/A text
+            const na = row.querySelector('.modal-feature-na');
+            if (na) na.remove();
+          } else {
+            bar.style.width = '0%';
+            if (!row.querySelector('.modal-feature-na')) {
+              const naEl = document.createElement('span');
+              naEl.className = 'modal-feature-na';
+              naEl.textContent = 'N/A';
+              row.appendChild(naEl);
+            }
+          }
+        }
+        setBar('modal-energy-bar', 'modal-energy-row', t.energy !== undefined ? t.energy : null);
+        setBar('modal-valence-bar', 'modal-valence-row', t.valence !== undefined ? t.valence : null);
+        setBar('modal-dance-bar', 'modal-dance-row', t.danceability !== undefined ? t.danceability : null);
+
+        backdrop.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        backdrop.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      // Attach click handlers to track rows
+      document.querySelectorAll('#track-list .track-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+          openModal(parseInt(this.dataset.trackIndex, 10));
+        });
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      // ── Listening Heatmap ─────────────────────────────────
+      fetch('/api/heatmap/')
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+          buildHeatmap(json.data || []);
+        })
+        .catch(function () {
+          // silently fail — heatmap section just stays empty
+        });
+
+      function buildHeatmap(data) {
+        // Build a map of date string -> count
+        const countMap = {};
+        let maxCount = 0;
+        data.forEach(function (d) {
+          countMap[d.date] = d.count;
+          if (d.count > maxCount) maxCount = d.count;
+        });
+
+        // Determine the 52-week window: Sun of 52 weeks ago -> today
+        const today = new Date();
+        // Start from the Monday 52 weeks ago
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - (52 * 7));
+        // Align to Monday
+        const dow = startDate.getDay(); // 0=Sun
+        const daysToMon = dow === 0 ? 1 : (dow === 1 ? 0 : -(dow - 1));
+        startDate.setDate(startDate.getDate() + daysToMon);
+
+        const grid = document.getElementById('heatmap-grid');
+        grid.innerHTML = '';
+
+        // We'll render column by column (each column = 1 week Mon-Sun)
+        let cursor = new Date(startDate);
+        const totalDays = 52 * 7;
+
+        for (let i = 0; i < totalDays; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'hm-cell';
+
+          const dateStr = cursor.toISOString().slice(0, 10);
+          const count = countMap[dateStr] || 0;
+
+          if (count === 0) {
+            cell.style.background = '#1e1e1e';
+          } else {
+            const opacity = maxCount > 0 ? 0.15 + (count / maxCount) * 0.85 : 0.15;
+            cell.style.background = `rgba(29,185,84,${opacity.toFixed(2)})`;
+          }
+
+          cell.title = dateStr + (count ? `: ${count} play${count !== 1 ? 's' : ''}` : ': no plays');
+          grid.appendChild(cell);
+
+          cursor.setDate(cursor.getDate() + 1);
+        }
+      }
+    });
+
     // ── Section 3: Top Tracks Horizontal Bar Chart ──────────
     (function () {
       const el = document.getElementById('tracks-data');
@@ -439,7 +1060,6 @@
       if (!rawTracks || !rawTracks.length) return;
 
       const canvas = document.getElementById('tracksChart');
-      // Dynamically size height so all bars are readable
       const barHeight = 28;
       canvas.height = rawTracks.length * barHeight + 60;
 
@@ -498,11 +1118,9 @@
       const canvas = document.getElementById('radarChart');
       if (!canvas) return;
 
-      // Values injected via Django template
-      const energy      = parseFloat("{{ summary.avg_energy|default:'0' }}");
-      const valence     = parseFloat("{{ summary.avg_valence|default:'0' }}");
+      const energy       = parseFloat("{{ summary.avg_energy|default:'0' }}");
+      const valence      = parseFloat("{{ summary.avg_valence|default:'0' }}");
       const danceability = parseFloat("{{ summary.avg_danceability|default:'0' }}");
-      // Acousticness not in summary; default to a neutral midpoint so the axis is still shown
       const acousticness = 0.5;
 
       new Chart(canvas.getContext('2d'), {
