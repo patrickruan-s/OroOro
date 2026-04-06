@@ -1,6 +1,8 @@
 import datetime
+import time
 from collections import Counter
 
+import requests
 import spotipy
 import spotipy.oauth2
 import spotipy.cache_handler
@@ -71,12 +73,67 @@ def get_recently_played(sp, limit=50) -> list:
     return entries
 
 
+# Genre-based audio feature estimates used as fallback when the
+# audio-features API endpoint is unavailable (deprecated for apps after Nov 2024).
+# Values are heuristic approximations on a 0.0–1.0 scale.
+_GENRE_FEATURE_MAP = {
+    "dance":       {"energy": 0.80, "valence": 0.65, "danceability": 0.85, "acousticness": 0.05},
+    "electronic":  {"energy": 0.80, "valence": 0.43, "danceability": 0.80, "acousticness": 0.05},
+    "edm":         {"energy": 0.85, "valence": 0.60, "danceability": 0.85, "acousticness": 0.04},
+    "pop":         {"energy": 0.60, "valence": 0.65, "danceability": 0.70, "acousticness": 0.15},
+    "hip hop":     {"energy": 0.65, "valence": 0.42, "danceability": 0.78, "acousticness": 0.10},
+    "rap":         {"energy": 0.65, "valence": 0.48, "danceability": 0.78, "acousticness": 0.08},
+    "r&b":         {"energy": 0.44, "valence": 0.58, "danceability": 0.72, "acousticness": 0.20},
+    "soul":        {"energy": 0.42, "valence": 0.60, "danceability": 0.68, "acousticness": 0.30},
+    "rock":        {"energy": 0.78, "valence": 0.45, "danceability": 0.50, "acousticness": 0.10},
+    "metal":       {"energy": 0.92, "valence": 0.28, "danceability": 0.35, "acousticness": 0.05},
+    "punk":        {"energy": 0.88, "valence": 0.40, "danceability": 0.45, "acousticness": 0.05},
+    "indie":       {"energy": 0.46, "valence": 0.44, "danceability": 0.55, "acousticness": 0.28},
+    "alternative": {"energy": 0.60, "valence": 0.45, "danceability": 0.52, "acousticness": 0.18},
+    "folk":        {"energy": 0.35, "valence": 0.55, "danceability": 0.42, "acousticness": 0.80},
+    "acoustic":    {"energy": 0.32, "valence": 0.55, "danceability": 0.40, "acousticness": 0.85},
+    "classical":   {"energy": 0.25, "valence": 0.50, "danceability": 0.22, "acousticness": 0.92},
+    "jazz":        {"energy": 0.40, "valence": 0.60, "danceability": 0.55, "acousticness": 0.72},
+    "blues":       {"energy": 0.45, "valence": 0.42, "danceability": 0.50, "acousticness": 0.55},
+    "country":     {"energy": 0.52, "valence": 0.62, "danceability": 0.55, "acousticness": 0.50},
+    "latin":       {"energy": 0.70, "valence": 0.72, "danceability": 0.82, "acousticness": 0.15},
+    "reggae":      {"energy": 0.55, "valence": 0.70, "danceability": 0.75, "acousticness": 0.25},
+    "ambient":     {"energy": 0.20, "valence": 0.40, "danceability": 0.25, "acousticness": 0.60},
+}
+_DEFAULT_FEATURES = {"energy": 0.55, "valence": 0.50, "danceability": 0.55, "acousticness": 0.30}
+
+
+def _estimate_features_from_genres(genres: list) -> dict:
+    """
+    Derive estimated audio features from a list of genre strings.
+    Averages values across all matched genre keywords found in the list.
+    Falls back to neutral defaults if no genres match.
+    """
+    breakpoint()
+    matched = []
+    for genre in genres:
+        genre_lower = genre.lower()
+        for keyword, features in _GENRE_FEATURE_MAP.items():
+            if keyword in genre_lower:
+                matched.append(features)
+                break
+    if not matched:
+        return dict(_DEFAULT_FEATURES)
+    result = {}
+    for key in ("energy", "valence", "danceability", "acousticness"):
+        result[key] = sum(f[key] for f in matched) / len(matched)
+    return result
+
+
 def get_audio_features(sp, track_ids: list) -> dict:
     """
     Returns audio features keyed by track spotify_id.
-    Returns an empty dict if the endpoint is unavailable (403 — deprecated for new apps).
+    Falls back to genre-based estimation if the endpoint is unavailable
+    (deprecated for apps created after Nov 2024 — returns 403).
     """
     features_map = {}
+    api_unavailable = False
+
     # Spotify API allows up to 100 ids per request
     for i in range(0, len(track_ids), 100):
         batch = track_ids[i:i + 100]
@@ -84,8 +141,8 @@ def get_audio_features(sp, track_ids: list) -> dict:
             results = sp.audio_features(batch)
         except spotipy.SpotifyException as e:
             if e.http_status == 403:
-                # audio-features endpoint deprecated for apps created after Nov 2024
-                return {}
+                api_unavailable = True
+                break
             raise
         if not results:
             continue
@@ -99,7 +156,38 @@ def get_audio_features(sp, track_ids: list) -> dict:
                 "acousticness": feat.get("acousticness"),
                 "tempo": feat.get("tempo"),
             }
+
+    if api_unavailable:
+        # Estimate features from genres for each track via their artists
+        for track_obj in Track.objects.filter(spotify_id__in=track_ids).prefetch_related("artists"):
+            genres = []
+            for artist in track_obj.artists.all():
+                breakpoint()
+                genres.extend(artist.genres)
+            estimated = _estimate_features_from_genres(genres)
+            features_map[track_obj.spotify_id] = {**estimated, "tempo": None}
+
     return features_map
+
+
+def _fetch_genres_from_musicbrainz(artist_name: str) -> list:
+    """Look up genre tags for an artist from MusicBrainz."""
+    try:
+        resp = requests.get(
+            "https://musicbrainz.org/ws/2/artist/",
+            params={"query": f'artist:"{artist_name}"', "fmt": "json", "limit": 1},
+            headers={"User-Agent": "SpotifyAnalysisApp/1.0 (spotify-analysis)"},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        artists = resp.json().get("artists", [])
+        if not artists:
+            return []
+        tags = artists[0].get("tags", [])
+        tags_sorted = sorted(tags, key=lambda t: t.get("count", 0), reverse=True)
+        return [t["name"] for t in tags_sorted[:8]]
+    except Exception:
+        return []
 
 
 def _parse_release_date(date_str):
@@ -116,15 +204,27 @@ def _parse_release_date(date_str):
 def sync_user_data(sp, user):
     all_top_track_ids = []
 
-    # Step 1: For each time_range, fetch top tracks and upsert Artist + Track records
+    # Step 1: For each time_range, fetch top artists (with genres) and top tracks
     for time_range in ["short_term", "medium_term", "long_term"]:
+        # Fetch full artist details (genres, image) first so they're available
+        # when audio features are estimated from genres later in this sync.
+        top_artists_result = sp.current_user_top_artists(limit=50, time_range=time_range)
+        for artist_data in top_artists_result["items"]:
+            image_url = artist_data["images"][0]["url"] if artist_data.get("images") else ""
+            Artist.objects.update_or_create(
+                spotify_id=artist_data["id"],
+                defaults={
+                    "name": artist_data["name"],
+                    "genres": artist_data.get("genres", []),
+                    "image_url": image_url,
+                },
+            )
+
         results = sp.current_user_top_tracks(limit=50, time_range=time_range)
         for i, item in enumerate(results["items"]):
-            # Upsert artists
+            # Upsert artists — genres already populated above from top_artists call
             artist_objs = []
             for artist_data in item["artists"]:
-                # Full artist details (image_url, genres) not available in track listings;
-                # they are populated separately via get_top_artists().
                 artist_obj, _ = Artist.objects.update_or_create(
                     spotify_id=artist_data["id"],
                     defaults={
@@ -162,6 +262,16 @@ def sync_user_data(sp, user):
                 snapshot_date=datetime.date.today(),
                 defaults={"rank": i + 1},
             )
+
+    # Fetch genres from MusicBrainz once for all artists still missing genres
+    artists_needing_genres = list(Artist.objects.filter(genres=[]))
+    for i, artist_obj in enumerate(artists_needing_genres):
+        if i > 0:
+            time.sleep(1)  # MusicBrainz rate limit: 1 req/sec (only between requests)
+        genres = _fetch_genres_from_musicbrainz(artist_obj.name)
+        if genres:
+            artist_obj.genres = genres
+            artist_obj.save(update_fields=["genres"])
 
     # Step 2: Fetch audio features only for tracks synced in this call
     tracks_missing_features = Track.objects.filter(
